@@ -1,0 +1,48 @@
+{
+  "name": "engineering-notebook",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "latest",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@tailwindcss/postcss": "latest",
+    "@tiptap/extension-code-block-lowlight": "^3.27.1",
+    "@tiptap/extension-image": "^3.27.1",
+    "@tiptap/react": "latest",
+    "@tiptap/starter-kit": "latest",
+    "@types/bcryptjs": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vercel/blob": "^2.6.1",
+    "autoprefixer": "latest",
+    "bcryptjs": "latest",
+    "lowlight": "^3.0.0",
+    "next": "latest",
+    "next-auth": "^5.0.0-beta.31",
+    "postcss": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "tailwindcss": "latest",
+    "ts-node": "latest",
+    "typescript": "latest"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "i": "^0.3.7",
+    "npm": "^11.17.0",
+    "prisma": "^5.22.0",
+    "tsx": "^4.23.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

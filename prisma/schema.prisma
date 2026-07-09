@@ -1,0 +1,112 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password_hash String
+  role          String    @default("admin")
+  bio           String?
+  avatar_url    String?
+  social_links  Json?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  projects      Project[]
+  tutorials     Tutorial[]
+  series        Series[]
+  audit_logs    AuditLog[]
+}
+
+model Project {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  summary         String
+  cover_image     String?
+  body            String
+  status          String    @default("draft")
+  tags            String[]
+  tech_stack      String[]
+  github_url      String?
+  demo_url        String?
+  author_id       String
+  author          User      @relation(fields: [author_id], references: [id])
+  seo_title       String?
+  seo_description String?
+  og_image        String?
+  published_at    DateTime?
+  updated_at      DateTime  @updatedAt
+  view_count      Int       @default(0)
+  created_at      DateTime  @default(now())
+  // Remove this line
+  // audit_logs      AuditLog[]
+}
+
+model Tutorial {
+  id                  String    @id @default(cuid())
+  slug                String    @unique
+  title               String
+  summary             String
+  cover_image         String?
+  body                String
+  status              String    @default("draft")
+  tags                String[]
+  author_id           String
+  author              User      @relation(fields: [author_id], references: [id])
+  series_id           String?
+  series              Series?   @relation(fields: [series_id], references: [id])
+  series_order        Int?
+  seo_title           String?
+  seo_description     String?
+  og_image            String?
+  published_at        DateTime?
+  updated_at          DateTime  @updatedAt
+  view_count          Int       @default(0)
+  estimated_read_time Int?
+  created_at          DateTime  @default(now())
+  // Remove this line
+  // audit_logs          AuditLog[]
+}
+
+model Series {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  title         String
+  description   String?
+  cover_image   String?
+  author_id     String
+  author        User       @relation(fields: [author_id], references: [id])
+  status        String     @default("draft")
+  tutorials     Tutorial[]
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  created_at  DateTime  @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id])
+  action      String
+  entity_type String   // "project", "tutorial", "series", "user", etc.
+  entity_id   String   // The ID of the entity being audited
+  metadata    Json?
+  ip_address  String?
+  created_at  DateTime @default(now())
+}
