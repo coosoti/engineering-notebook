@@ -1,11 +1,11 @@
 'use server'
 
 import { prisma } from "@/lib/db/client"
-import { createAuditLog } from "@/lib/db/audit-log"
+import { createAuditLog } from "@/lib/audit"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { generateSlug } from "@/utils/slug"
-import { getClientIp } from "@/lib/audit"
+import { getClientIp } from "@/lib/server/get-client-ip"
 import { ProjectInput } from "@/lib/types/projects"
 
 export async function createProjectAction(data: ProjectInput) {

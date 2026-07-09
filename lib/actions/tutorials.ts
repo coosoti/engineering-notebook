@@ -1,12 +1,12 @@
 'use server'
 
 import { prisma } from "@/lib/db/client"
-import { createAuditLog } from "@/lib/db/audit-log"
+import { createAuditLog } from "@/lib/audit"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { generateSlug } from "@/utils/slug"
 import { calculateReadTime } from "@/utils/content"
-import { getClientIp } from "@/lib/audit"
+import { getClientIp } from "@/lib/server/get-client-ip"
 
 export async function createTutorialAction(data: any) {
   const session = await auth()
