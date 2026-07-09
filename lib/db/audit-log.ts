@@ -1,3 +1,4 @@
+// lib/db/audit-log.ts
 import { prisma } from "@/lib/db/client"
 
 export async function createAuditLog(data: {
@@ -9,6 +10,13 @@ export async function createAuditLog(data: {
   ip_address?: string
 }) {
   return await prisma.auditLog.create({
-    data
+    data: {
+      user_id: data.user_id,
+      action: data.action,
+      entity_type: data.entity_type,
+      entity_id: data.entity_id || '', // Provide default
+      metadata: data.metadata || {},
+      ip_address: data.ip_address || 'unknown',
+    }
   })
 }

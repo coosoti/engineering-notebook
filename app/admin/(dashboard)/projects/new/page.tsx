@@ -9,7 +9,7 @@ import TiptapEditor from "@/components/admin/editor/TiptapEditor"
 export default function NewProjectPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { register, handleSubmit, setValue, __getValues, formState: { errors } } = useForm()
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm() // Removed __getValues
   const [body, setBody] = useState("")
 
   const onSubmit = async (data: any) => {
@@ -67,6 +67,7 @@ export default function NewProjectPage() {
               id="slug"
               {...register('slug')}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Auto-generated from title if left blank"
             />
           </div>
 
@@ -93,7 +94,7 @@ export default function NewProjectPage() {
               content={body}
               onChange={(content) => setBody(content)}
             />
-            {(!body && <p className="mt-1 text-sm text-red-600">Content is required</p>)}
+            {!body && <p className="mt-1 text-sm text-red-600">Content is required</p>}
           </div>
 
           <div>

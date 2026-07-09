@@ -1,3 +1,5 @@
+'use server'
+
 import { prisma } from "@/lib/db/client"
 import { createAuditLog } from "@/lib/db/audit-log"
 import { auth } from "@/lib/auth"

@@ -1,9 +1,12 @@
 'use server'
 
 import { headers } from 'next/headers'
+import { createAuditLog as createAuditLogFn } from "@/lib/db/audit-log"
 
-export { createAuditLog } from "@/lib/db/audit-log"
+// Re-export the audit log function
+export { createAuditLogFn as createAuditLog }
 
+// Export the IP getter function
 export async function getClientIp() {
   const headerList = await headers()
   const forwarded = headerList.get('x-forwarded-for')
