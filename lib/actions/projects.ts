@@ -6,22 +6,7 @@ import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { generateSlug } from "@/utils/slug"
 import { getClientIp } from "@/lib/audit"
-
-export interface ProjectInput {
-  title: string
-  summary: string
-  body: string
-  cover_image?: string
-  status?: string
-  tags?: string[]
-  tech_stack?: string[]
-  github_url?: string
-  demo_url?: string
-  seo_title?: string
-  seo_description?: string
-  og_image?: string
-  slug?: string
-}
+import { ProjectInput } from "@/lib/types/projects"
 
 export async function createProjectAction(data: ProjectInput) {
   const session = await auth()

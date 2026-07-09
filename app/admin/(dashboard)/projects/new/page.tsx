@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { createProjectAction } from "@/lib/actions/projects"
+import { ProjectInput } from "@/lib/types/projects"
 import TiptapEditor from "@/components/admin/editor/TiptapEditor"
 
 export default function NewProjectPage() {

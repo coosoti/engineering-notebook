@@ -3,7 +3,8 @@
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
-import { updateProjectAction, ProjectInput } from "@/lib/actions/projects"
+import { updateProjectAction } from "@/lib/actions/projects"
+import { ProjectInput } from "@/lib/types/projects"
 import TiptapEditor from "@/components/admin/editor/TiptapEditor"
 
 export default function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
