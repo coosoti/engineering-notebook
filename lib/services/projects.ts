@@ -1,9 +1,6 @@
 import 'server-only'
 import { prisma } from "@/lib/db/client"
-import { createAuditLog } from "@/lib/audit"
-import { revalidatePath } from "next/cache"
 import { generateSlug } from "@/utils/slug"
-import { getClientIp } from "@/lib/server/get-client-ip"
 import { ProjectInput } from "@/lib/types/projects"
 
 export async function createProject(data: ProjectInput, userId: string) {
