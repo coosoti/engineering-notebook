@@ -19,6 +19,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         console.log('SERVER: authorize called with email:', credentials?.email)
+        
+        // DEBUG BYPASS: Use this to test if the DB is the problem
+        if (credentials?.email === 'admin@test.com' && credentials?.password === 'password123') {
+          console.log('DEBUG: Mock login successful')
+          return { id: 'test-id', name: 'Test Admin', email: 'admin@test.com', role: 'admin' }
+        }
         if (!credentials?.email || !credentials?.password) {
           console.log('SERVER: Missing credentials')
           return null

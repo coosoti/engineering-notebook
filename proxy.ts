@@ -1,20 +1,17 @@
-// proxy.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { auth } from '@/lib/auth'
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  const session = await auth()
   const isOnAdmin = request.nextUrl.pathname.startsWith('/admin')
   const isOnLogin = request.nextUrl.pathname === '/admin/login'
-  
-  // Check for session cookie
-  const sessionCookie = request.cookies.get('next-auth.session-token') || 
-                         request.cookies.get('__Secure-next-auth.session-token')
 
-  if (isOnAdmin && !isOnLogin && !sessionCookie) {
+  if (isOnAdmin && !isOnLogin && !session) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
 
-  if (isOnLogin && sessionCookie) {
+  if (isOnLogin && session) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
