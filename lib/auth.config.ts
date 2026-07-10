@@ -1,11 +1,12 @@
 import type { NextAuthConfig } from 'next-auth'
 
 export const authConfig = {
+  providers: [],
   pages: {
     signIn: '/admin/login',
   },
   callbacks: {
-    authorized({ auth, request: { user } }) {
+    authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user
       const isOnDashboard = request.nextUrl.pathname.startsWith('/admin')
 
