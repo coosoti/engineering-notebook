@@ -1,13 +1,12 @@
-// lib/auth.config.ts
-import type { NextAuthConfig } from "next-auth"
+import type { NextAuthConfig } from 'next-auth'
 
-export const authConfig: NextAuthConfig = {
+export const authConfig = {
   providers: [],
   pages: {
     signIn: '/admin/login',
   },
   callbacks: {
-    authorized({ auth, request }: { auth: any; request: any }) {
+    authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user
       const isOnDashboard = request.nextUrl.pathname.startsWith('/admin')
 
@@ -18,4 +17,4 @@ export const authConfig: NextAuthConfig = {
       return true
     },
   },
-}
+} satisfies NextAuthConfig
