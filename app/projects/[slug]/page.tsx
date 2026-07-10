@@ -2,9 +2,12 @@ import { getProjectBySlug } from "@/lib/db/projects"
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
 import { generateSEOConfig } from "@/utils/seo"
+import { highlightHtml } from "@/lib/utils/highlight"
+import { generateProjectSchema } from "@/lib/utils/seo-schema"
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const project = await getProjectBySlug(params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const project = await getProjectBySlug(slug)
 
   if (!project) {
     return {
@@ -20,15 +23,23 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   })
 }
 
-export default async function ProjectPage({ params }: { params: { slug: string } }) {
-  const project = await getProjectBySlug(params.slug)
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const project = await getProjectBySlug(slug)
 
-  if (!project) {
+  if (!//project) {
     notFound()
   }
 
+  const highlightedBody = await highlightHtml(project.body)
+  const jsonLd = generateProjectSchema(project)
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article>
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -66,9 +77,10 @@ export default async function ProjectPage({ params }: { params: { slug: string }
             {project.summary}
           </p>
 
-          <div className="mt-6 text-gray-700 whitespace-pre-line">
-            {project.body}
-          </div>
+          <div
+            className="mt-6 text-gray-700"
+            dangerouslySetInnerHTML={{ __html: highlightedBody }}
+          />
         </div>
 
         {(project.tech_stack.length > 0 || project.tags.length > 0) && (

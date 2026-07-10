@@ -8,6 +8,18 @@ export async function getProjects() {
   })
 }
 
+export async function getProjectsByTag(tag: string) {
+  return await prisma.project.findMany({
+    where: {
+      tags: {
+        has: tag
+      }
+    },
+    orderBy: { created_at: "desc" },
+    include: { author: true }
+  })
+}
+
 export async function getProjectBySlug(slug: string) {
   return await prisma.project.findUnique({
     where: { slug },

@@ -8,6 +8,41 @@ export async function getTutorials() {
   })
 }
 
+export async function getAdjacentTutorials(seriesId: string, currentOrder: number) {
+  const [prev, next] = await Promise.all([
+    prisma.tutorial.findFirst({
+      where: {
+        series_id: seriesId,
+        series_order: { lt: currentOrder }
+      },
+      orderBy: { series_order: 'desc' },
+      include: { author: true }
+    }),
+    prisma.tutorial.findFirst({
+      where: {
+        series_id: seriesId,
+        series_order: { gt: currentOrder }
+      },
+      orderBy: { series_order: 'asc' },
+      include: { author: true }
+    })
+  ])
+
+  return { prev, next }
+}
+
+export async function getTutorialsByTag(tag: string) {
+  return await prisma.tutorial.findMany({
+    where: {
+      tags: {
+        has: tag
+      }
+    },
+    orderBy: { created_at: "desc" },
+    include: { author: true }
+  })
+}
+
 export async function getTutorialBySlug(slug: string) {
   return await prisma.tutorial.findUnique({
     where: { slug },

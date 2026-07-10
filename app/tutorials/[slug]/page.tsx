@@ -1,8 +1,12 @@
-import { getTutorialBySlug } from "@/lib/db/tutorials"
+import { getTutorialBySlug, getAdjacentTutorials } from "@/lib/db/tutorials"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Metadata } from "next"
 import { generateSEOConfig } from "@/utils/seo"
+import { highlightHtml } from "@/lib/utils/highlight"
+import { generateTutorialSchema } from "@/lib/utils/seo-schema"
+import { highlightHtml } from "@/lib/utils/highlight"
+import { generateTutorialSchema } from "@/lib/utils/seo-schema"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -30,8 +34,20 @@ export default async function TutorialPage({ params }: { params: Promise<{ slug:
     notFound()
   }
 
+  const highlightedBody = await highlightHtml(tutorial.body)
+  const jsonLd = generateTutorialSchema(tutorial)
+
+  let navigation = null
+  if (tutorial.series_id) {
+    navigation = await getAdjacentTutorials(tutorial.series_id, tutorial.series_order || 0)
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article>
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -69,16 +85,39 @@ export default async function TutorialPage({ params }: { params: Promise<{ slug:
             {tutorial.summary}
           </p>
 
-          <div className="mt-6 text-gray-700 whitespace-pre-line">
-            {tutorial.body}
-          </div>
+          <div
+            className="mt-6 text-gray-700"
+            dangerouslySetInnerHTML={{ __html: highlightedBody }}
+          />
         </div>
 
         {tutorial.series && (
           <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <p className="text-sm font-medium text-blue-800">
+            <p className="text-sm font-medium text-blue-800 mb-4">
               Part of the series: <Link href={`/series/${tutorial.series.slug}`} className="underline hover:text-blue-600">{tutorial.series.title}</Link>
             </p>
+            <div className="flex justify-between items-center">
+              {navigation?.prev ? (
+                <Link
+                  href={`/tutorials/${navigation.prev.slug}`}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+                >
+                  ← Previous: {navigation.prev.title}
+                </Link>
+              ) : (
+                <div />
+              )}
+              {navigation?.next ? (
+                <Link
+                  href={`/tutorials/${navigation.next.slug}`}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+                >
+                  Next: {navigation.next.title} →
+                </Link>
+              ) : (
+                <div />
+              )}
+            </div>
           </div>
         )}
 
