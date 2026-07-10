@@ -14,17 +14,7 @@ export async function createProject(data: ProjectInput, userId: string) {
     }
   })
 
-  await createAuditLog({
-    user_id: userId,
-    action: 'create',
-    entity_type: 'Project',
-    entity_id: project.id,
-    metadata: { title: project.title },
-    ip_address: await getClientIp()
-  })
 
-  revalidatePath('/admin/projects')
-  revalidatePath(`/projects/${slug}`)
 
   return project
 }
@@ -45,18 +35,6 @@ export async function updateProject(id: string, data: ProjectInput, userId: stri
     }
   })
 
-  await createAuditLog({
-    user_id: userId,
-    action: 'update',
-    entity_type: 'Project',
-    entity_id: project.id,
-    metadata: { title: project.title },
-    ip_address: await getClientIp()
-  })
-
-  revalidatePath('/admin/projects')
-  revalidatePath(`/projects/${project.slug}`)
-
   return project
 }
 
@@ -64,18 +42,6 @@ export async function deleteProject(id: string, userId: string) {
   const project = await prisma.project.delete({
     where: { id }
   })
-
-  await createAuditLog({
-    user_id: userId,
-    action: 'delete',
-    entity_type: 'Project',
-    entity_id: project.id,
-    metadata: { title: project.title },
-    ip_address: await getClientIp()
-  })
-
-  revalidatePath('/admin/projects')
-  revalidatePath(`/projects/${project.slug}`)
 
   return project
 }
