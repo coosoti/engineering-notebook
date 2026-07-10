@@ -27,7 +27,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params
   const project = await getProjectBySlug(slug)
 
-  if (!//project) {
+  if (!project) {
     notFound()
   }
 

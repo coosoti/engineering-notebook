@@ -5,8 +5,6 @@ import { Metadata } from "next"
 import { generateSEOConfig } from "@/utils/seo"
 import { highlightHtml } from "@/lib/utils/highlight"
 import { generateTutorialSchema } from "@/lib/utils/seo-schema"
-import { highlightHtml } from "@/lib/utils/highlight"
-import { generateTutorialSchema } from "@/lib/utils/seo-schema"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
