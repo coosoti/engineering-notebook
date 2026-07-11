@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Metadata } from "next"
 import { generateSEOConfig } from "@/utils/seo"
 import JsonLd from "@/components/seo/JsonLd"
+import { Tutorial } from "@prisma/client"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -69,7 +70,7 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ s
 
       <div className="space-y-4">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Curriculum</h2>
-        {series.tutorials.map((tutorial, index) => (
+        {series.tutorials.map((tutorial: Tutorial, index: number) => (
           <Link
             key={tutorial.id}
             href={`/tutorials/${tutorial.slug}`}

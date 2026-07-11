@@ -5,6 +5,7 @@ import { generateSEOConfig } from "@/utils/seo"
 import { highlightHtml } from "@/lib/utils/highlight"
 import { generateProjectSchema } from "@/lib/utils/seo-schema"
 import JsonLd from "@/components/seo/JsonLd"
+import Link from "next/link"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -90,7 +91,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               <div className="mb-4">
                 <h3 className="text-sm font-medium text-gray-900">Technologies</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {project.tech_stack.map((tech) => (
+                  {project.tech_stack.map((tech: string) => (
                     <span
                       key={tech}
                       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
@@ -106,13 +107,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               <div>
                 <h3 className="text-sm font-medium text-gray-900">Tags</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {project.tags.map((tag) => (
-                    <span
+                  {project.tags.map((tag: string) => (
+                    <Link
                       key={tag}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                      href={`/tags/${tag}`}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
                     >
-                      {tag}
-                    </span>
+                      #{tag}
+                    </Link>
                   ))}
                 </div>
               </div>

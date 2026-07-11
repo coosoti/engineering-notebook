@@ -24,6 +24,7 @@
     "@vercel/blob": "^2.6.1",
     "autoprefixer": "latest",
     "bcryptjs": "latest",
+    "clsx": "^2.1.1",
     "hast-util-to-html": "^9.0.5",
     "lowlight": "^3.0.0",
     "next": "latest",
@@ -32,6 +33,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-hook-form": "latest",
+    "tailwind-merge": "^3.6.0",
     "tailwindcss": "latest",
     "ts-node": "latest",
     "typescript": "latest"

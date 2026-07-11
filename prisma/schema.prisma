@@ -47,8 +47,6 @@ model Project {
   updated_at      DateTime  @updatedAt
   view_count      Int       @default(0)
   created_at      DateTime  @default(now())
-  // Remove this line
-  // audit_logs      AuditLog[]
 }
 
 model Tutorial {
@@ -73,8 +71,6 @@ model Tutorial {
   view_count          Int       @default(0)
   estimated_read_time Int?
   created_at          DateTime  @default(now())
-  // Remove this line
-  // audit_logs          AuditLog[]
 }
 
 model Series {
@@ -109,4 +105,17 @@ model AuditLog {
   metadata    Json?
   ip_address  String?
   created_at  DateTime @default(now())
+}
+
+model PageView {
+  id               String   @id @default(cuid())
+  path             String
+  content_type     String   // "project", "tutorial", "series", "other"
+  content_id       String?
+  session_id       String
+  referrer         String?
+  country          String?
+  device_type      String?
+  time_on_page_sec Int      @default(0)
+  created_at       DateTime @default(now())
 }

@@ -1,7 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import AnalyticsTracker from '@/components/analytics/AnalyticsTracker'
 
 export const metadata: Metadata = {
   title: 'Engineering Notebook',
@@ -16,13 +15,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <AnalyticsTracker />
+        {children}
       </body>
     </html>
   )
