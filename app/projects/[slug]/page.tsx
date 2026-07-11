@@ -4,6 +4,7 @@ import { Metadata } from "next"
 import { generateSEOConfig } from "@/utils/seo"
 import { highlightHtml } from "@/lib/utils/highlight"
 import { generateProjectSchema } from "@/lib/utils/seo-schema"
+import JsonLd from "@/components/seo/JsonLd"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
