@@ -1,5 +1,20 @@
-// lib/db/audit-log.ts
 import { prisma } from "@/lib/db/client"
+
+export async function getAuditLogs() {
+  return await prisma.auditLog.findMany({
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      created_at: 'desc',
+    },
+  })
+}
 
 export async function createAuditLog(data: {
   user_id: string

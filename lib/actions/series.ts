@@ -3,6 +3,11 @@
 import { prisma } from "@/lib/db/client"
 import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
+import { Permissions } from "@/lib/permissions"
+
+export async function createSeries(data: {
+// ...
+
 
 export async function createSeries(data: {
   title: string;
@@ -143,7 +148,7 @@ export async function deleteSeries(id: string) {
 export async function reorderTutorialsAction(seriesId: string, tutorialIds: string[]) {
   try {
     const session = await auth()
-    if (!session || session.user?.role !== 'admin') {
+    if (!session || !Permissions.canManageUsers({ id: session.user?.id as string, role: session.user?.role as any })) {
       throw new Error("Unauthorized")
     }
 

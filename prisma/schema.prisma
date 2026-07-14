@@ -9,12 +9,21 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum Role {
+  ADMIN
+  EDITOR
+  AUTHOR
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
   password_hash String
-  role          String    @default("admin")
+  role          Role      @default(AUTHOR)
+  must_change_password Boolean @default(true)
+  reset_token   String?
+  reset_token_expiry DateTime?
   bio           String?
   avatar_url    String?
   social_links  Json?
@@ -100,8 +109,8 @@ model AuditLog {
   user_id     String
   user        User     @relation(fields: [user_id], references: [id])
   action      String
-  entity_type String   // "project", "tutorial", "series", "user", etc.
-  entity_id   String   // The ID of the entity being audited
+  entity_type String
+  entity_id   String
   metadata    Json?
   ip_address  String?
   created_at  DateTime @default(now())
@@ -110,7 +119,7 @@ model AuditLog {
 model PageView {
   id               String   @id @default(cuid())
   path             String
-  content_type     String   // "project", "tutorial", "series", "other"
+  content_type     String
   content_id       String?
   session_id       String
   referrer         String?

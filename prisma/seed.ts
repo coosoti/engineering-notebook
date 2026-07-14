@@ -6,38 +6,37 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Starting database seeding...')
 
-  // Create admin user
   const adminEmail = 'admin@example.com'
-  const adminPassword = 'Admin123!'
+  const adminPassword = 'Password123!'
 
+  // 1. Create/Update Superuser
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail }
   })
 
   if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash(adminPassword, 10)
-
-    const adminUser = await prisma.user.create({
+    await prisma.user.create({
       data: {
-        name: 'Admin User',
+        name: 'System Administrator',
         email: adminEmail,
         password_hash: hashedPassword,
-        role: 'admin'
+        role: 'ADMIN',
+        must_change_password: false,
       }
     })
-
-    console.log('Admin user created:', adminUser.email)
+    console.log('✅ Admin created:', adminEmail)
   } else {
-    console.log('Admin user already exists')
+    console.log('✅ Admin already exists')
   }
 
-  // Create sample projects
+  // 2. Create sample projects
   const sampleProjects = [
     {
       title: 'Building a Scalable API with Node.js',
       slug: 'scalable-api-nodejs',
       summary: 'Learn how to build a scalable REST API using Node.js, Express, and MongoDB.',
-      body: 'This is a sample project content. In a real implementation, this would contain detailed technical documentation about building a scalable API with Node.js.',
+      body: 'This is a sample project content.',
       status: 'published',
       tags: ['Node.js', 'API', 'Scalability'],
       tech_stack: ['Node.js', 'Express', 'MongoDB']
@@ -46,7 +45,7 @@ async function main() {
       title: 'Machine Learning Model Deployment',
       slug: 'ml-model-deployment',
       summary: 'Guide to deploying machine learning models in production environments.',
-      body: 'This is a sample project content. In a real implementation, this would contain detailed technical documentation about deploying machine learning models in production.',
+      body: 'This is a sample project content.',
       status: 'published',
       tags: ['Machine Learning', 'Deployment', 'MLOps'],
       tech_stack: ['Python', 'TensorFlow', 'Docker', 'Kubernetes']
@@ -54,33 +53,24 @@ async function main() {
   ]
 
   for (const projectData of sampleProjects) {
-    const existingProject = await prisma.project.findUnique({
-      where: { slug: projectData.slug }
+    await prisma.project.upsert({
+      where: { slug: projectData.slug },
+      update: {},
+      create: {
+        ...projectData,
+        author: { connect: { email: adminEmail } }
+      }
     })
-
-    if (!existingProject) {
-      const project = await prisma.project.create({
-        data: {
-          ...projectData,
-          author: {
-            connect: {
-              email: adminEmail
-            }
-          }
-        }
-      })
-
-      console.log('Created project:', project.title)
-    }
   }
+  console.log('✅ Sample projects seeded')
 
-  // Create sample tutorials
+  // 3. Create sample tutorials
   const sampleTutorials = [
     {
       title: 'Getting Started with Docker',
       slug: 'getting-started-docker',
       summary: 'A beginner\'s guide to containerizing applications with Docker.',
-      body: 'This is a sample tutorial content. In a real implementation, this would contain step-by-step instructions for getting started with Docker.',
+      body: 'This is a sample tutorial content.',
       status: 'published',
       tags: ['Docker', 'Containers', 'DevOps']
     },
@@ -88,34 +78,25 @@ async function main() {
       title: 'Introduction to Kubernetes',
       slug: 'introduction-kubernetes',
       summary: 'Learn the basics of Kubernetes orchestration.',
-      body: 'This is a sample tutorial content. In a real implementation, this would contain step-by-step instructions for learning Kubernetes.',
+      body: 'This is a sample tutorial content.',
       status: 'published',
       tags: ['Kubernetes', 'Orchestration', 'DevOps']
     }
   ]
 
   for (const tutorialData of sampleTutorials) {
-    const existingTutorial = await prisma.tutorial.findUnique({
-      where: { slug: tutorialData.slug }
+    await prisma.tutorial.upsert({
+      where: { slug: tutorialData.slug },
+      update: {},
+      create: {
+        ...tutorialData,
+        author: { connect: { email: adminEmail } }
+      }
     })
-
-    if (!existingTutorial) {
-      const tutorial = await prisma.tutorial.create({
-        data: {
-          ...tutorialData,
-          author: {
-            connect: {
-              email: adminEmail
-            }
-          }
-        }
-      })
-
-      console.log('Created tutorial:', tutorial.title)
-    }
   }
+  console.log('✅ Sample tutorials seeded')
 
-  console.log('Seeding completed successfully!')
+  console.log('🚀 Seeding completed successfully!')
 }
 
 main()

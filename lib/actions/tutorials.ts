@@ -2,10 +2,11 @@
 
 import { auth } from "@/lib/auth"
 import * as tutorialService from "@/lib/services/tutorials"
+import { Permissions } from "@/lib/permissions"
 
 export async function createTutorialAction(data: any) {
   const session = await auth()
-  if (!session || session.user?.role !== 'admin') {
+  if (!session || !Permissions.canManageUsers({ id: session.user?.id as string, role: session.user?.role as any })) {
     throw new Error("Unauthorized")
   }
 
@@ -19,7 +20,7 @@ export async function createTutorialAction(data: any) {
 
 export async function updateTutorialAction(id: string, data: any) {
   const session = await auth()
-  if (!session || session.user?.role !== 'admin') {
+  if (!session || !Permissions.canManageUsers({ id: session.user?.id as string, role: session.user?.role as any })) {
     throw new Error("Unauthorized")
   }
 
@@ -33,7 +34,7 @@ export async function updateTutorialAction(id: string, data: any) {
 
 export async function deleteTutorialAction(id: string) {
   const session = await auth()
-  if (!session || session.user?.role !== 'admin') {
+  if (!session || !Permissions.canManageUsers({ id: session.user?.id as string, role: session.user?.role as any })) {
     throw new Error("Unauthorized")
   }
 

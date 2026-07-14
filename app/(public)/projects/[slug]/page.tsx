@@ -6,6 +6,9 @@ import { highlightHtml } from "@/lib/utils/highlight"
 import { generateProjectSchema } from "@/lib/utils/seo-schema"
 import JsonLd from "@/components/seo/JsonLd"
 import Link from "next/link"
+import TableOfContents from "@/components/TableOfContents"
+import { extractHeadings, injectHeadingIds } from "@/lib/utils/toc"
+import { sanitizeHtml } from "@/lib/security"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -33,116 +36,132 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     notFound()
   }
 
-  const highlightedBody = await highlightHtml(project.body)
+  const rawBody = project.body
+  const headings = extractHeadings(rawBody)
+  const bodyWithIds = injectHeadingIds(rawBody)
+  const highlightedBody = await highlightHtml(bodyWithIds)
   const jsonLd = generateProjectSchema(project)
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <article>
-        <header className="mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            {project.title}
-          </h1>
-          <div className="mt-4 flex items-center">
-            <div className="shrink-0">
-              <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                {project.status}
-              </span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-900">
-                {project.author?.name || project.author?.email}
-              </p>
-              <div className="flex space-x-1 text-sm text-gray-500">
-                <time dateTime={project.created_at.toString()}>
-                  {new Date(project.created_at).toLocaleDateString()}
-                </time>
-                {project.updated_at && (
-                  <>
-                    <span aria-hidden="true">&middot;</span>
-                    <time dateTime={project.updated_at.toString()}>
-                      Updated {new Date(project.updated_at).toLocaleDateString()}
-                    </time>
-                  </>
+    <div className="min-h-screen bg-background text-foreground">
+      <JsonLd data={jsonLd} />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex gap-12">
+          <div className="flex-1 max-w-4xl">
+            <article>
+              <header className="mb-12">
+                <h1 className="text-4xl font-extrabold text-slate-900 sm:text-5xl tracking-tight">
+                  {project.title}
+                </h1>
+                <div className="mt-6 flex items-center gap-4">
+                  <div className="shrink-0">
+                    <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                      {project.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {project.author?.name || project.author?.email}
+                    </p>
+                    <span className="text-slate-300">•</span>
+                    <div className="flex space-x-1 text-sm text-slate-500">
+                      <time dateTime={project.created_at.toString()}>
+                        {new Date(project.created_at).toLocaleDateString()}
+                      </time>
+                      {project.updated_at && (
+                        <>
+                          <span aria-hidden="true">&middot;</span>
+                          <time dateTime={project.updated_at.toString()}>
+                            Updated {new Date(project.updated_at).toLocaleDateString()}
+                          </time>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </header>
+
+              <div className="flex gap-12">
+                <div className="prose prose-lg max-w-none flex-1">
+                  <p className="text-xl text-slate-500 mb-12 leading-relaxed font-light">
+                    {project.summary}
+                  </p>
+
+                  <div
+                    className="mt-6 text-slate-800"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(highlightedBody) }}
+                  />
+                </div>
+
+                {headings.length > 0 && (
+                  <div className="hidden xl:block w-64 shrink-0">
+                    <TableOfContents headings={headings} />
+                  </div>
                 )}
               </div>
-            </div>
+
+              {(project.tech_stack.length > 0 || project.tags.length > 0) && (
+                <div className="mt-20 pt-12 border-t border-slate-100">
+                  {project.tech_stack.length > 0 && (
+                    <div className="mb-10">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4">Technologies</h3>
+                      <div className="flex flex-wrap gap-3">
+                        {project.tech_stack.map((tech: string) => (
+                          <span
+                            key={tech}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {project.tags.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4">Tags</h3>
+                      <div className="flex flex-wrap gap-3">
+                        {project.tags.map((tag: string) => (
+                          <Link
+                            key={tag}
+                            href={`/tags/${tag}`}
+                            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                          >
+                            #{tag}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(project.github_url || project.demo_url) && (
+                <div className="mt-12 flex gap-4">
+                  {project.github_url && (
+                    <a
+                      href={project.github_url}
+                      className="inline-flex items-center px-6 py-3 border border-slate-200 text-sm font-semibold rounded-full text-slate-900 bg-white hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                      View on GitHub
+                    </a>
+                  )}
+                  {project.demo_url && (
+                    <a
+                      href={project.demo_url}
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-full shadow-sm text-background bg-foreground hover:opacity-90 transition-all"
+                    >
+                      View Demo
+                    </a>
+                  )}
+                </div>
+              )}
+            </article>
           </div>
-        </header>
-
-        <div className="prose prose-lg max-w-none">
-          <p className="text-xl text-gray-600 mb-8">
-            {project.summary}
-          </p>
-
-          <div
-            className="mt-6 text-gray-700"
-            dangerouslySetInnerHTML={{ __html: highlightedBody }}
-          />
         </div>
-
-        {(project.tech_stack.length > 0 || project.tags.length > 0) && (
-          <div className="mt-8">
-            {project.tech_stack.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-900">Technologies</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {project.tech_stack.map((tech: string) => (
-                    <span
-                      key={tech}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {project.tags.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">Tags</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {project.tags.map((tag: string) => (
-                    <Link
-                      key={tag}
-                      href={`/tags/${tag}`}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
-                    >
-                      #{tag}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {(project.github_url || project.demo_url) && (
-          <div className="mt-8 flex gap-4">
-            {project.github_url && (
-              <a
-                href={project.github_url}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                View on GitHub
-              </a>
-            )}
-            {project.demo_url && (
-              <a
-                href={project.demo_url}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                View Demo
-              </a>
-            )}
-          </div>
-        )}
-      </article>
+      </div>
     </div>
   )
 }

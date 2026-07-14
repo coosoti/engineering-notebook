@@ -10,6 +10,11 @@ export async function createTutorial(data: any, userId: string) {
   const slug = data.slug || generateSlug(data.title)
   const estimatedReadTime = data.body ? calculateReadTime(data.body) : 0
 
+  // Parse tags from comma-separated string to array
+  const tags = typeof data.tags === 'string'
+    ? data.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== '')
+    : data.tags
+
   const tutorial = await prisma.tutorial.create({
     data: {
       title: data.title,
@@ -19,6 +24,10 @@ export async function createTutorial(data: any, userId: string) {
       status: data.status || 'draft',
       estimated_read_time: estimatedReadTime,
       author_id: userId,
+      series_id: data.series_id || null,
+      series_order: data.series_order ? parseInt(data.series_order) : null,
+      tags: tags || [],
+      cover_image: data.cover_image || null,
     }
   })
 
@@ -41,6 +50,15 @@ export async function updateTutorial(id: string, data: any, userId: string) {
   const updatedData = { ...data }
   if (data.body) {
     updatedData.estimated_read_time = calculateReadTime(data.body)
+  }
+
+  // Parse tags from comma-separated string to array
+  if (data.tags && typeof data.tags === 'string') {
+    updatedData.tags = data.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== '')
+  }
+
+  if (data.series_order) {
+    updatedData.series_order = parseInt(data.series_order)
   }
 
   const tutorial = await prisma.tutorial.update({

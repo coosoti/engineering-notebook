@@ -1,66 +1,75 @@
 import { getProjects } from "@/lib/db/projects"
 import Link from "next/link"
+import Card from "@/components/ui/Card"
 
 export default async function ProjectsPage() {
   const projects = await getProjects()
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-5xl">
-          Projects
-        </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-600 dark:text-zinc-400">
-          Explore my technical projects and case studies in AI Engineering and System Design
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#f2f2f0] text-slate-900">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-24 sm:py-32 border-b border-slate-200 bg-white">
+        <div className="absolute inset-0 z-0 opacity-40">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-slate-100 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 -left-24 w-96 h-96 bg-slate-100 rounded-full blur-3xl" />
+        </div>
 
-      <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project) => (
-          <div key={project.id} className="tech-card p-6 flex flex-col justify-between group">
-            <div>
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                  Project
-                </span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
-                  {project.status}
-                </span>
-              </div>
-              
-              <Link href={`/projects/${project.slug}`} className="block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-zinc-100 mb-2">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl font-extrabold text-slate-900 sm:text-6xl mb-6">
+            Projects
+          </h1>
+          <p className="max-w-2xl mx-auto text-xl text-slate-500 leading-relaxed">
+            Explore my technical projects and case studies in AI Engineering and System Design.
+          </p>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <Link
+              key={project.id}
+              href={`/projects/${project.slug}`}
+              className="group"
+            >
+              <Card className="p-8 h-full bg-white dark:bg-white border-slate-100 transition-all hover:shadow-xl hover:-translate-y-1 duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-slate-300" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Project</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                    {project.status}
+                  </span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-primary transition-colors">
                   {project.title}
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-zinc-400 line-clamp-3">
+                <p className="text-slate-500 text-base line-clamp-3 leading-relaxed mb-8">
                   {project.summary}
                 </p>
-              </Link>
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                {project.tech_stack?.map((tech) => (
-                  <span key={tech} className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-500 border border-slate-200 dark:border-zinc-700">
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8 pt-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
-                  {project.author?.name?.[0] || 'U'}
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {project.tech_stack?.map((tech) => (
+                    <span key={tech} className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
+                      {tech}
+                    </span>
+                  ))}
                 </div>
-                <p className="text-xs font-medium text-slate-700 dark:text-zinc-300">
-                  {project.author?.name || 'Unknown'}
-                </p>
-              </div>
-              <time className="text-xs text-slate-400 dark:text-zinc-500">
-                {new Date(project.created_at).toLocaleDateString()}
-              </time>
-            </div>
-          </div>
-        ))}
+                <div className="flex items-center justify-between mt-auto pt-6 border-t border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                      {project.author?.name?.[0] || 'A'}
+                    </div>
+                    <span className="text-xs text-slate-500">{project.author?.name || 'Admin User'}</span>
+                  </div>
+                  <div className="flex items-center text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Explore Case Study <span className="ml-1 transition-transform group-hover:translate-x-1">→</span>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface DeleteButtonProps {
   id: string
@@ -28,10 +29,10 @@ export default function DeleteButton({ id, action, label, onSuccess }: DeleteBut
           window.location.reload()
         }
       } else {
-        alert('Failed to delete the item')
+        toast.error('Failed to delete the item')
       }
     } catch (error: any) {
-      alert(error.message || 'An error occurred while deleting')
+      toast.error(error.message || 'An error occurred while deleting')
     } finally {
       setIsDeleting(false)
     }

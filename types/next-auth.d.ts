@@ -8,6 +8,7 @@ declare module "next-auth" {
     user: {
       id: string
       role: string
+      mustChangePassword: boolean
     } & DefaultSession["user"]
   }
 
@@ -16,6 +17,7 @@ declare module "next-auth" {
    */
   interface User extends NextAuthUser {
     role: string
+    mustChangePassword: boolean
   }
 
   /**
@@ -28,10 +30,11 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   /**
-   * Extended JWT token to include user ID and role
+   * Extended JWT token to include user ID, role and password status
    */
   interface JWT {
     id: string
     role: string
+    mustChangePassword: boolean
   }
 }

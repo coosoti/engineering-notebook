@@ -1,200 +1,176 @@
 import { getProjects } from "@/lib/db/projects"
 import { getTutorials } from "@/lib/db/tutorials"
+import { prisma } from "@/lib/db/client"
+import { auth } from "@/lib/auth"
+import { Permissions } from "@/lib/permissions"
 import Link from "next/link"
+import Card from "@/components/ui/Card"
+import { LayoutDashboard, BookOpen, FileText, ClipboardList, BarChart3, ArrowRight, Users } from "lucide-react"
 
 export default async function AdminDashboard() {
+  const session = await auth()
+  const user = session?.user as any
+  const userWithRole = user ? { id: user.id, role: user.role } : null
+
   const projects = await getProjects()
   const tutorials = await getTutorials()
+  const userCount = await prisma.user.count()
+
+  const stats = [
+    {
+      label: "Total Projects",
+      value: projects.length,
+      link: "/admin/projects",
+      icon: LayoutDashboard,
+      accent: "text-primary bg-primary/10",
+    },
+    {
+      label: "Total Tutorials",
+      value: tutorials.length,
+      link: "/admin/tutorials",
+      icon: BookOpen,
+      accent: "text-[#ea580c] bg-[#ea580c]/10",
+    },
+    ...(userWithRole && Permissions.canManageUsers(userWithRole) ? [{
+      label: "Total Users",
+      value: userCount,
+      link: "/admin/users",
+      icon: Users,
+      accent: "text-indigo-600 bg-indigo-50",
+    }] : []),
+    {
+      label: "Draft Content",
+      value: projects.filter(p => p.status === "draft").length + tutorials.filter(t => t.status === "draft").length,
+      link: "/admin/projects",
+      icon: FileText,
+      accent: "text-slate-600 bg-slate-100",
+    },
+    {
+      label: "Site Analytics",
+      value: "Active",
+      link: "/admin/analytics",
+      icon: BarChart3,
+      accent: "text-cyan-600 bg-cyan-50",
+    },
+  ]
 
   return (
-    <div>
-      <div className="md:flex md:items-center md:justify-between">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-            Dashboard
-          </h2>
-        </div>
+    <div className="space-y-10">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+          Dashboard
+        </h2>
+        <p className="text-slate-500 mt-1">
+          Welcome back. Here is an overview of your notebook's current state.
+        </p>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label} className="p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group bg-white dark:bg-white border-slate-200 hover:border-primary/30">
+            <div className="flex items-start justify-between">
+              <div className={`p-2.5 rounded-xl ${stat.accent} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                <stat.icon size={20} />
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Projects</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">{projects.length}</div>
-                  </dd>
-                </dl>
-              </div>
+              <span className="text-xs font-medium text-slate-400">Live</span>
             </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
-              <Link href="/admin/projects" className="font-medium text-indigo-600 hover:text-indigo-500">
-                View all projects
+            <div className="mt-4">
+              <p className="text-sm font-medium text-slate-500">
+                {stat.label}
+              </p>
+              <p className="text-3xl font-bold text-slate-900 mt-1 tracking-tight">
+                {stat.value}
+              </p>
+            </div>
+            <div className="mt-6">
+              <Link
+                href={stat.link}
+                className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1 transition-colors"
+              >
+                Manage {stat.label.toLowerCase()} <ArrowRight size={12} />
               </Link>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Tutorials</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">{tutorials.length}</div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
-              <Link href="/admin/tutorials" className="font-medium text-indigo-600 hover:text-indigo-500">
-                View all tutorials
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Draft Content</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      {projects.filter(p => p.status === "draft").length + tutorials.filter(t => t.status === "draft").length}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
-              <Link href="/admin/projects" className="font-medium text-indigo-600 hover:text-indigo-500">
-                Manage drafts
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2, 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Site Analytics</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">Engagement</div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
-              <Link href="/admin/analytics" className="font-medium text-indigo-600 hover:text-indigo-500">
-                View analytics
-              </Link>
-            </div>
-          </div>
-        </div>
+          </Card>
+        ))}
       </div>
 
-      <div className="mt-8">
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <div className="bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Recent Content</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* Recent Activity */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-slate-900">Recent Activity</h3>
+            <Link href="/admin/audit-log" className="text-xs font-medium text-primary hover:underline">
+              View Audit Log →
+            </Link>
           </div>
-          <ul className="divide-y divide-gray-200">
-            {projects.slice(0, 3).map((project) => (
-              <li key={project.id}>
-                <Link href={`/admin/projects/${project.id}/edit`} className="block hover:bg-gray-50">
-                  <div className="px-4 py-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-indigo-600 truncate">
-                        {project.title}
-                      </p>
-                      <div className="ml-2 flex-shrink-0 flex">
-                        <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          Project
+
+          <Card className="overflow-hidden p-0 border-slate-200 bg-white dark:bg-white">
+            <div className="divide-y divide-slate-200">
+              {[...projects, ...tutorials]
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 6)
+                .map((item, idx) => {
+                  const isProject = "Project" in item || (item as any).github_url !== undefined;
+                  return (
+                    <div key={idx} className="p-4 hover:bg-slate-50 transition-all duration-200 group flex items-center gap-4">
+                      <div className={`w-1 h-10 rounded-full ${isProject ? "bg-primary" : "bg-[#ea580c]"}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <Link
+                            href={`/admin/${isProject ? "projects" : "tutorials"}/${item.id}/edit`}
+                            className="text-sm font-semibold text-slate-900 group-hover:text-primary transition-colors truncate block"
+                          >
+                            {item.title}
+                          </Link>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            {isProject ? "Project" : "Tutorial"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 truncate mt-0.5">
+                          {item.summary}
                         </p>
                       </div>
+                      <Link
+                        href={`/admin/${isProject ? "projects" : "tutorials"}/${item.id}/edit`}
+                        className="p-2 text-slate-400 group-hover:text-primary transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <ArrowRight size={16} />
+                      </Link>
                     </div>
-                    <div className="mt-2 sm:flex sm:justify-between">
-                      <div className="sm:flex">
-                        <p className="flex items-center text-sm text-gray-500">
-                          {project.summary.substring(0, 100)}...
-                        </p>
-                      </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                        <p>
-                          Created on {new Date(project.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
+                  );
+                })}
+            </div>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-bold text-slate-900">Quick Actions</h3>
+          <div className="grid gap-4">
+            {[
+              { label: "New Project", href: "/admin/projects/new", icon: FileText, color: "text-primary" },
+              { label: "New Tutorial", href: "/admin/tutorials/new", icon: BookOpen, color: "text-[#ea580c]" },
+              { label: "New Series", href: "/admin/series/new", icon: ClipboardList, color: "text-slate-600" },
+              ...(userWithRole && Permissions.canManageUsers(userWithRole)
+                ? [{ label: "Manage Users", href: "/admin/users", icon: Users, color: "text-indigo-600" }]
+                : []),
+            ].map((action) => (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-primary/50 transition-all duration-200 group shadow-sm hover:shadow-md"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg bg-slate-100 ${action.color} transition-colors group-hover:bg-white`}>
+                    <action.icon size={18} />
                   </div>
-                </Link>
-              </li>
+                  <span className="text-sm font-semibold text-slate-900">{action.label}</span>
+                </div>
+                <ArrowRight size={16} className="text-slate-400 group-hover:text-primary transition-colors" />
+              </Link>
             ))}
-            {tutorials.slice(0, 3).map((tutorial) => (
-              <li key={tutorial.id}>
-                <Link href={`/admin/tutorials/${tutorial.id}/edit`} className="block hover:bg-gray-50">
-                  <div className="px-4 py-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-indigo-600 truncate">
-                        {tutorial.title}
-                      </p>
-                      <div className="ml-2 flex-shrink-0 flex">
-                        <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                          Tutorial
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-2 sm:flex sm:justify-between">
-                      <div className="sm:flex">
-                        <p className="flex items-center text-sm text-gray-500">
-                          {tutorial.summary.substring(0, 100)}...
-                        </p>
-                      </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                        <p>
-                          Created on {new Date(tutorial.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          </div>
         </div>
       </div>
     </div>

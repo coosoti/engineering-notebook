@@ -1,14 +1,24 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { createSeries } from "@/lib/actions/series"
+import { slugify } from "@/utils/slugify"
+import { toast } from "sonner"
 
 export default function NewSeriesPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { register, handleSubmit, formState: { errors } } = useForm()
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm()
+  const [isSlugManual, setIsSlugManual] = useState(false)
+  const watchedTitle = watch('title')
+
+  useEffect(() => {
+    if (!isSlugManual && watchedTitle) {
+      setValue('slug', slugify(watchedTitle), { shouldValidate: true })
+    }
+  }, [watchedTitle, isSlugManual, setValue])
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true)
@@ -20,13 +30,14 @@ export default function NewSeriesPage() {
       })
 
       if (result.success) {
+        toast.success('Series created successfully!')
         router.push('/admin/series')
         router.refresh()
       } else {
-        alert(result.error)
+        toast.error(result.error || 'Failed to create series')
       }
     } catch (error: any) {
-      alert(error.message || 'An error occurred while creating the series')
+      toast.error(error.message || 'An error occurred while creating the series')
     } finally {
       setIsSubmitting(false)
     }
@@ -71,6 +82,10 @@ export default function NewSeriesPage() {
               type="text"
               id="slug"
               {...register('slug', { required: 'Slug is required' })}
+              onChange={(e) => {
+                register('slug').onChange(e)
+                setIsSlugManual(true)
+              }}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               placeholder="e.g. mastering-kubernetes"
             />

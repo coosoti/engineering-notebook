@@ -7,8 +7,12 @@ import { highlightHtml } from "@/lib/utils/highlight"
 import { generateTutorialSchema } from "@/lib/utils/seo-schema"
 import JsonLd from "@/components/seo/JsonLd"
 import SeriesSidebar from "@/components/series/SeriesSidebar"
+import TableOfContents from "@/components/TableOfContents"
+import { extractHeadings, injectHeadingIds } from "@/lib/utils/toc"
 import { prisma } from "@/lib/db/client"
 import { Tutorial } from "@prisma/client"
+import { sanitizeHtml } from "@/lib/security"
+import ReadingProgressBar from "@/components/ReadingProgressBar"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -36,7 +40,10 @@ export default async function TutorialPage({ params }: { params: Promise<{ slug:
     notFound()
   }
 
-  const highlightedBody = await highlightHtml(tutorial.body)
+  const rawBody = tutorial.body
+  const headings = extractHeadings(rawBody)
+  const bodyWithIds = injectHeadingIds(rawBody)
+  const highlightedBody = await highlightHtml(bodyWithIds)
   const jsonLd = generateTutorialSchema(tutorial)
 
   let navigation = null
@@ -56,36 +63,41 @@ export default async function TutorialPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
+      <ReadingProgressBar />
       <JsonLd data={jsonLd} />
-      
+
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex gap-12">
           {tutorial.series_id && (
-            <SeriesSidebar 
-              seriesTitle={seriesTitle} 
-              tutorials={seriesTutorials} 
-              currentTutorialSlug={slug} 
-            />
+            <div className="hidden lg:block w-64 shrink-0">
+              <SeriesSidebar
+                seriesTitle={seriesTitle}
+                tutorials={seriesTutorials}
+                currentTutorialSlug={slug}
+              />
+            </div>
           )}
 
           <div className="flex-1 max-w-4xl">
             <article>
-              <header className="mb-8">
-                <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              <header className="mb-12">
+                <h1 className="text-4xl font-extrabold text-slate-900 sm:text-5xl tracking-tight">
                   {tutorial.title}
                 </h1>
-                <div className="mt-4 flex items-center">
+                <div className="mt-6 flex items-center gap-4">
                   <div className="shrink-0">
-                    <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                       {tutorial.status}
                     </span>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-900">
                       {tutorial.author?.name || tutorial.author?.email}
                     </p>
-                    <div className="flex space-x-1 text-sm text-gray-500">
+                    <span className="text-slate-300">•</span>
+                    <div className="flex space-x-1 text-sm text-slate-500">
                       <time dateTime={tutorial.created_at.toString()}>
                         {new Date(tutorial.created_at).toLocaleDateString()}
                       </time>
@@ -102,27 +114,35 @@ export default async function TutorialPage({ params }: { params: Promise<{ slug:
                 </div>
               </header>
 
-              <div className="prose prose-lg max-w-none">
-                <p className="text-xl text-gray-600 mb-8">
-                  {tutorial.summary}
-                </p>
+              <div className="flex gap-12">
+                <div className="prose prose-lg max-w-none flex-1">
+                  <p className="text-xl text-slate-500 mb-12 leading-relaxed font-light">
+                    {tutorial.summary}
+                  </p>
 
-                <div
-                  className="mt-6 text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: highlightedBody }}
-                />
+                  <div
+                    className="mt-6 text-slate-800"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(highlightedBody) }}
+                  />
+                </div>
+
+                {headings.length > 0 && (
+                  <div className="hidden xl:block w-64 shrink-0">
+                    <TableOfContents headings={headings} />
+                  </div>
+                )}
               </div>
 
               {tutorial.series && (
-                <div className="mt-12 p-6 bg-blue-50 rounded-2xl border border-blue-100">
-                  <p className="text-sm font-medium text-blue-800 mb-4">
-                    Part of the series: <Link href={`/series/${tutorial.series.slug}`} className="underline hover:text-blue-600 font-bold">{tutorial.series.title}</Link>
+                <div className="mt-20 p-8 bg-slate-50 rounded-3xl border border-slate-100">
+                  <p className="text-sm font-semibold text-slate-900 mb-6">
+                    Part of the series: <Link href={`/series/${tutorial.series.slug}`} className="text-primary underline hover:opacity-80 font-bold">{tutorial.series.title}</Link>
                   </p>
                   <div className="flex justify-between items-center">
                     {navigation?.prev ? (
                       <Link
                         href={`/tutorials/${navigation.prev.slug}`}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-700 bg-white hover:bg-blue-50 transition-colors shadow-sm"
+                        className="inline-flex items-center px-5 py-2.5 border border-slate-200 text-sm font-medium rounded-full bg-white text-slate-900 hover:bg-slate-50 transition-all shadow-sm"
                       >
                         ← Previous: {navigation.prev.title}
                       </Link>
@@ -132,7 +152,7 @@ export default async function TutorialPage({ params }: { params: Promise<{ slug:
                     {navigation?.next ? (
                       <Link
                         href={`/tutorials/${navigation.next.slug}`}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-700 bg-white hover:bg-blue-50 transition-colors shadow-sm"
+                        className="inline-flex items-center px-5 py-2.5 border border-slate-200 text-sm font-medium rounded-full bg-white text-slate-900 hover:bg-slate-50 transition-all shadow-sm"
                       >
                         Next: {navigation.next.title} →
                       </Link>
@@ -144,14 +164,14 @@ export default async function TutorialPage({ params }: { params: Promise<{ slug:
               )}
 
               {tutorial.tags.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-gray-100">
-                  <h3 className="text-sm font-medium text-gray-900 mb-4">Related Topics</h3>
-                  <div className="flex flex-wrap gap-2">
+                <div className="mt-20 pt-12 border-t border-slate-100">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-6">Related Topics</h3>
+                  <div className="flex flex-wrap gap-3">
                     {tutorial.tags.map((tag: string) => (
                       <Link
                         key={tag}
                         href={`/tags/${tag}`}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
+                        className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
                       >
                         #{tag}
                       </Link>
