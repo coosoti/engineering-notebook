@@ -6,10 +6,6 @@ import { auth } from "@/lib/auth"
 import { Permissions } from "@/lib/permissions"
 
 export async function createSeries(data: {
-// ...
-
-
-export async function createSeries(data: {
   title: string;
   slug: string;
   description?: string;
