@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/client"
 import { Project } from "@prisma/client"
 
-export async function getProjects(onlyPublished = false) {
+export async function getProjects(onlyPublished = true) {
   return await prisma.project.findMany({
     where: onlyPublished ? { status: "published" } : {},
     orderBy: { created_at: "desc" },

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/client"
 import { Tutorial } from "@prisma/client"
 
-export async function getTutorials(onlyPublished = false) {
+export async function getTutorials(onlyPublished = true) {
   return await prisma.tutorial.findMany({
     where: onlyPublished ? { status: "published" } : {},
     orderBy: { created_at: "desc" },

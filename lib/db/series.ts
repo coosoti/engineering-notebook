@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/client"
 
-export async function getSeries(onlyPublished = false) {
+export async function getSeries(onlyPublished = true) {
   return await prisma.series.findMany({
     where: onlyPublished ? { status: "published" } : {},
     orderBy: { created_at: 'desc' }
