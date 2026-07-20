@@ -5,7 +5,7 @@ import DeleteButton from "@/components/admin/DeleteButton"
 import Card from "@/components/ui/Card"
 
 export default async function TutorialsPage() {
-  const tutorials = await getTutorials()
+  const tutorials = await getTutorials(false)
 
   return (
     <div className="space-y-8">

@@ -1,10 +1,11 @@
 export function generateProjectSchema(project: any) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareSourceCode",
     "name": project.title,
     "description": project.summary,
-    "url": `https://yourdomain.com/projects/${project.slug}`,
+    "url": `${baseUrl}/projects/${project.slug}`,
     "image": project.og_image || "",
     "author": {
       "@type": "Person",
@@ -16,12 +17,13 @@ export function generateProjectSchema(project: any) {
 }
 
 export function generateTutorialSchema(tutorial: any) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"
   return {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": tutorial.title,
     "description": tutorial.summary,
-    "url": `https://yourdomain.com/tutorials/${tutorial.slug}`,
+    "url": `${baseUrl}/tutorials/${tutorial.slug}`,
     "image": tutorial.og_image || "",
     "author": {
       "@type": "Person",

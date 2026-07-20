@@ -4,16 +4,18 @@ import AnalyticsTracker from '@/components/analytics/AnalyticsTracker'
 import CommandPalette from '@/components/CommandPalette'
 import { SearchProvider } from '@/context/SearchContext'
 import { Toaster } from 'sonner'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 
-const geistSans = Geist({
+const interSans = Inter({
   subsets: ['latin'],
-  variable: '--font-geist-sans',
+  variable: '--font-inter-sans',
+  display: 'swap',
 })
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
-  variable: '--font-geist-mono',
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -28,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${interSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <SearchProvider>
           <AnalyticsTracker />
           <CommandPalette />

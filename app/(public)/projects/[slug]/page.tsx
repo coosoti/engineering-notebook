@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return generateSEOConfig({
     title: project.seo_title || project.title,
     description: project.seo_description || project.summary,
-    url: `https://yourdomain.com/projects/${project.slug}`,
+    url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"}/projects/${project.slug}`,
     image: project.og_image ?? undefined,
   })
 }

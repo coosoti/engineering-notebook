@@ -1,6 +1,20 @@
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import { getAnalyticsOverview, AnalyticsOverview } from "@/lib/db/analytics"
+import { Permissions } from "@/lib/permissions"
 
 export default async function AnalyticsPage() {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    redirect("/admin/login")
+  }
+
+  const userRole = String(session.user.role || "").toUpperCase()
+  if (userRole !== "ADMIN") {
+    redirect("/")
+  }
+
   const stats: AnalyticsOverview = await getAnalyticsOverview()
 
   return (

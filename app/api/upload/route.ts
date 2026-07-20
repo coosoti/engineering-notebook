@@ -1,14 +1,15 @@
 import { put } from '@vercel/blob'
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { Permissions } from "@/lib/permissions"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
 export async function POST(request: Request) {
   try {
     const session = await auth()
-    if (!session || session.user?.role !== 'admin') {
+    if (!session?.user?.id || !Permissions.canCreateContent({ id: session.user.id, role: session.user.role as any })) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -37,8 +38,8 @@ export async function POST(request: Request) {
 
     // Generate unique filename to prevent collisions
     const timestamp = Date.now()
-    const extension = file.name.split('.').pop()
-    const filename = `${timestamp}-${file.name}`
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-').replace(/^[-.]+/, '') || 'image'
+    const filename = `${timestamp}-${safeName}`
 
     // Convert to Buffer for Vercel Blob
     const bytes = await file.arrayBuffer()
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
       contentType: file.type,
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       url: blob.url,
       filename: blob.pathname,
       size: file.size,

@@ -5,7 +5,7 @@ import DeleteButton from "@/components/admin/DeleteButton"
 import Card from "@/components/ui/Card"
 
 export default async function ProjectsPage() {
-  const projects = await getProjects()
+  const projects = await getProjects(false)
 
   return (
     <div className="space-y-8">

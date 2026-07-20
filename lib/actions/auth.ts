@@ -3,20 +3,17 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db/client"
 import bcrypt from "bcryptjs"
-import { toast } from "sonner"
 
 export async function updatePasswordAction(data: {
-  userId?: string,
   newPassword: string,
   token?: string
 }) {
   try {
     const session = await auth()
-    let targetUserId = data.userId
+    let targetUserId: string | undefined
 
-    // If no userId is provided, we are using the current session
-    if (!targetUserId && session?.user) {
-      targetUserId = session.user.id
+    if (data.newPassword.length < 12) {
+      return { success: false, error: "Password must be at least 12 characters" }
     }
 
     // If a token is provided, we validate it first (for Forgot Password flow)
@@ -32,6 +29,9 @@ export async function updatePasswordAction(data: {
         return { success: false, error: "Invalid or expired reset token" }
       }
       targetUserId = user.id
+    } else if (session?.user?.id) {
+      // Self-service password change: only allow changing own password
+      targetUserId = session.user.id
     }
 
     if (!targetUserId) {

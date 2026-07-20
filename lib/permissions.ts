@@ -12,7 +12,7 @@ export const Permissions = {
 
   canPublish: (user: UserWithRole) => {
     const role = String(user.role).toUpperCase()
-    return role === 'ADMIN' || role === 'EDITOR'
+    return role === 'ADMIN' || role === 'EDITOR' || role === 'AUTHOR'
   },
 
   canEditAny: (user: UserWithRole) => {

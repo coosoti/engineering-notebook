@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { generateSlug } from "@/utils/slug"
 import { calculateReadTime } from "@/utils/content"
 import { getClientIp } from "@/lib/server/get-client-ip"
+import { sanitizeHtml } from "@/lib/security"
 
 export async function createTutorial(data: any, userId: string) {
   const slug = data.slug || generateSlug(data.title)
@@ -20,7 +21,7 @@ export async function createTutorial(data: any, userId: string) {
       title: data.title,
       slug: slug,
       summary: data.summary,
-      body: data.body,
+      body: sanitizeHtml(data.body),
       status: data.status || 'draft',
       estimated_read_time: estimatedReadTime,
       author_id: userId,
@@ -47,7 +48,7 @@ export async function createTutorial(data: any, userId: string) {
 }
 
 export async function updateTutorial(id: string, data: any, userId: string) {
-  const updatedData = { ...data }
+  const updatedData = { ...data, body: data.body ? sanitizeHtml(data.body) : data.body }
   if (data.body) {
     updatedData.estimated_read_time = calculateReadTime(data.body)
   }

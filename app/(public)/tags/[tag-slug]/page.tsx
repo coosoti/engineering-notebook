@@ -31,20 +31,20 @@ export default async function TagPage({ params }: { params: Promise<{ "tag-slug"
     "@type": "CollectionPage",
     "name": `${formattedTag} Topic Hub`,
     "description": `A curated collection of projects and tutorials about ${formattedTag}`,
-    "url": `https://yourdomain.com/tags/${tag}`,
+    "url": `${process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"}/tags/${tag}`,
     "mainEntity": {
       "@type": "ItemList",
       "itemListElement": [
         ...projects.map((p, i) => ({
           "@type": "ListItem",
           "position": i + 1,
-          "url": `https://yourdomain.com/projects/${p.slug}`,
+          "url": `${process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"}/projects/${p.slug}`,
           "name": p.title
         })),
         ...tutorials.map((t, i) => ({
           "@type": "ListItem",
           "position": projects.length + i + 1,
-          "url": `https://yourdomain.com/tutorials/${t.slug}`,
+          "url": `${process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"}/tutorials/${t.slug}`,
           "name": t.title
         }))
       ]

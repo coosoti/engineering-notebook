@@ -1,5 +1,6 @@
 import TableOfContents from "@/components/TableOfContents"
 import { extractHeadings, injectHeadingIds } from "@/lib/utils/toc"
+import { sanitizeHtml } from "@/lib/security"
 
 export default function AboutPage() {
   // The content is static here, so we define it as a string to allow ToC parsing

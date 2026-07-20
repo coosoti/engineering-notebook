@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     // Search Projects
     const projects = await prisma.project.findMany({
       where: {
+        status: "published",
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
           { summary: { contains: query, mode: 'insensitive' } },
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
     // Search Tutorials
     const tutorials = await prisma.tutorial.findMany({
       where: {
+        status: "published",
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
           { summary: { contains: query, mode: 'insensitive' } },
@@ -39,6 +41,7 @@ export async function GET(request: Request) {
     // Search Series
     const series = await prisma.series.findMany({
       where: {
+        status: "published",
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
           { description: { contains: query, mode: 'insensitive' } },

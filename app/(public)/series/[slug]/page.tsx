@@ -9,7 +9,7 @@ import { Tutorial } from "@prisma/client"
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const series = await prisma.series.findUnique({
-    where: { slug },
+    where: { slug, status: "published" },
   })
 
   if (!series) {
@@ -19,14 +19,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return generateSEOConfig({
     title: series.title,
     description: series.description || 'A technical series of tutorials.',
-    url: `https://yourdomain.com/series/${series.slug}`,
+    url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"}/series/${series.slug}`,
   })
 }
 
 export default async function SeriesDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const series = await prisma.series.findUnique({
-    where: { slug },
+    where: { slug, status: "published" },
     include: {
       tutorials: {
         orderBy: { series_order: 'asc' },
@@ -46,7 +46,7 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ s
     "provider": {
       "@type": "Organization",
       "name": "Engineering Notebook",
-      "sameAs": "https://yourdomain.com"
+      "sameAs": process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"
     },
     "hasCourseInstance": {
       "@type": "CourseInstance",

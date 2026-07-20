@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/db/client"
 import { Tutorial } from "@prisma/client"
 
-export async function getTutorials() {
+export async function getTutorials(onlyPublished = false) {
   return await prisma.tutorial.findMany({
+    where: onlyPublished ? { status: "published" } : {},
     orderBy: { created_at: "desc" },
     include: { author: true }
   })
@@ -34,6 +35,7 @@ export async function getAdjacentTutorials(seriesId: string, currentOrder: numbe
 export async function getTutorialsByTag(tag: string) {
   return await prisma.tutorial.findMany({
     where: {
+      status: "published",
       tags: {
         has: tag
       }
@@ -45,7 +47,7 @@ export async function getTutorialsByTag(tag: string) {
 
 export async function getTutorialBySlug(slug: string) {
   return await prisma.tutorial.findUnique({
-    where: { slug },
+    where: { slug, status: "published" },
     include: {
       author: true,
       series: true

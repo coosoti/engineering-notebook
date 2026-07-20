@@ -2,20 +2,31 @@ import { getProjects } from "@/lib/db/projects"
 import { getTutorials } from "@/lib/db/tutorials"
 import { NextResponse } from "next/server"
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, '"')
+    .replace(/'/g, "'")
+}
+
 export async function GET() {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://engineering-notebook.vercel.app"
+
   const projects = await getProjects()
   const tutorials = await getTutorials()
 
   const items = [
     ...projects.map(p => ({
       title: p.title,
-      link: `https://yourdomain.com/projects/${p.slug}`,
+      link: `${baseUrl}/projects/${p.slug}`,
       description: p.summary,
       pubDate: p.created_at.toUTCString()
     })),
     ...tutorials.map(t => ({
       title: t.title,
-      link: `https://yourdomain.com/tutorials/${t.slug}`,
+      link: `${baseUrl}/tutorials/${t.slug}`,
       description: t.summary,
       pubDate: t.created_at.toUTCString()
     }))
@@ -25,25 +36,25 @@ export async function GET() {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Engineering Notebook</title>
-    <link>https://yourdomain.com</link>
+    <link>${baseUrl}</link>
     <description>Technical notes on AI Engineering, System Design, DevOps, and MLOps</description>
     <language>en-us</language>
-    <atom:link href="https://yourdomain.com/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml" />
     ${items.map(item => `
       <item>
-        <title>${item.title}</title>
+        <title>${escapeXml(item.title)}</title>
         <link>${item.link}</link>
-        <description>${item.description}</description>
+        <description>${escapeXml(item.description)}</description>
         <pubDate>${item.pubDate}</pubDate>
       </item>
-    `).join('')}
+    `).join("")}
   </channel>
 </rss>`
 
   return new NextResponse(rss, {
     headers: {
-      'Content-Type': 'application/xml',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=59'
+      "Content-Type": "application/xml",
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=59"
     }
   })
 }

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db/client"
 import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { Permissions } from "@/lib/permissions"
+import { createAuditLog } from "@/lib/audit"
+import { getClientIp } from "@/lib/server/get-client-ip"
 
 export async function createSeries(data: {
   title: string;
@@ -13,7 +15,7 @@ export async function createSeries(data: {
 }) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !Permissions.canCreateContent({ id: session.user.id, role: session.user.role as any })) {
       return { success: false, error: 'You must be logged in to create a series' }
     }
 
@@ -40,6 +42,8 @@ export async function createSeries(data: {
       },
     })
 
+    await createAuditLog({ user_id: session.user.id, action: 'create', entity_type: 'Series', entity_id: series.id, metadata: { title: series.title }, ip_address: await getClientIp() })
+
     revalidatePath('/admin/series')
     return { success: true, data: series }
   } catch (error: any) {
@@ -59,6 +63,8 @@ export async function updateSeries(id: string, data: {
   status?: string
 }) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) throw new Error("Unauthorized")
     // Check if series exists
     const existing = await prisma.series.findUnique({
       where: { id }
@@ -70,6 +76,7 @@ export async function updateSeries(id: string, data: {
         error: "Series not found"
       }
     }
+    if (!Permissions.canEditOwn({ id: session.user.id, role: session.user.role as any }, existing.author_id)) throw new Error("Unauthorized")
 
     // If slug is being updated, check uniqueness
     if (data.slug && data.slug !== existing.slug) {
@@ -90,6 +97,8 @@ export async function updateSeries(id: string, data: {
       data,
     })
 
+    await createAuditLog({ user_id: session.user.id, action: 'update', entity_type: 'Series', entity_id: series.id, metadata: { title: series.title }, ip_address: await getClientIp() })
+
     revalidatePath('/admin/series')
     revalidatePath(`/series/${series.slug}`)
 
@@ -105,6 +114,8 @@ export async function updateSeries(id: string, data: {
 
 export async function deleteSeries(id: string) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) throw new Error("Unauthorized")
     // Check if series exists
     const existing = await prisma.series.findUnique({
       where: { id },
@@ -117,6 +128,7 @@ export async function deleteSeries(id: string) {
         error: "Series not found"
       }
     }
+    if (!Permissions.canEditOwn({ id: session.user.id, role: session.user.role as any }, existing.author_id)) throw new Error("Unauthorized")
 
     // Check if series has tutorials
     if (existing.tutorials.length > 0) {
@@ -129,6 +141,7 @@ export async function deleteSeries(id: string) {
     await prisma.series.delete({
       where: { id },
     })
+    await createAuditLog({ user_id: session.user.id, action: 'delete', entity_type: 'Series', entity_id: id, metadata: { title: existing.title }, ip_address: await getClientIp() })
 
     revalidatePath('/admin/series')
     return { success: true }
@@ -144,9 +157,13 @@ export async function deleteSeries(id: string) {
 export async function reorderTutorialsAction(seriesId: string, tutorialIds: string[]) {
   try {
     const session = await auth()
-    if (!session || !Permissions.canManageUsers({ id: session.user?.id as string, role: session.user?.role as any })) {
+    if (!session?.user?.id) {
       throw new Error("Unauthorized")
     }
+    const series = await prisma.series.findUnique({ where: { id: seriesId }, select: { author_id: true, slug: true } })
+    if (!series || !Permissions.canEditOwn({ id: session.user.id, role: session.user.role as any }, series.author_id)) throw new Error("Unauthorized")
+    const tutorials = await prisma.tutorial.count({ where: { id: { in: tutorialIds }, series_id: seriesId } })
+    if (tutorials !== tutorialIds.length) throw new Error("Tutorials must belong to the series")
 
     // Perform multiple updates in a transaction
     await prisma.$transaction(
@@ -159,8 +176,7 @@ export async function reorderTutorialsAction(seriesId: string, tutorialIds: stri
     )
 
     revalidatePath('/admin/series')
-    // We can't easily revalidate a dynamic slug route without knowing the slug,
-    // but revalidating the admin series page is a start.
+    revalidatePath(`/series/${series.slug}`)
 
     return { success: true }
   } catch (error: any) {
